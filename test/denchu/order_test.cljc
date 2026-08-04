@@ -1,5 +1,6 @@
 (ns denchu.order-test
   (:require [clojure.test :refer [deftest is testing]]
+            [denchu.facts :as denchu.facts]
             [denchu.order :as order]
             [denchu.pricing :as pricing]))
 
@@ -61,11 +62,9 @@
               (order/violations o :permit-filed)))))
 
 (deftest projecting-slot-requires-a-road-occupancy-determination
-  (let [ev {"pole-owner-consent-record" true
-            "outdoor-ad-permit-record" true
-            "road-occupancy-permit-record" true
-            "agency-order-record" true
-            "creative-spec-record" true}
+  ;; 証跡キーの正本は okugai.facts（媒体別に効く規制から導出される）。
+  ;; 袖看板は道路上空に出るので road-occupancy / road-use が加わる。
+  (let [ev (zipmap (denchu.facts/required-evidence "JPN" :projecting) (repeat true))
         o (-> (order/new-order {:pole tepco-pole :slot-kind :projecting})
               (assoc :order/state :agency-confirmed :order/evidence ev))]
     (is (some #(re-find #"road-occupancy" %) (order/violations o :permit-filed)))

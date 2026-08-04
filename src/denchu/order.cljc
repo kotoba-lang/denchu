@@ -101,10 +101,12 @@
       (conj (str "no spec-basis for jurisdiction " (iso3 order)))
 
       (and (= to :permit-filed)
-           (seq (let [m (facts/missing-evidence (iso3 order) (keys (:order/evidence order)))]
+           (seq (let [m (facts/missing-evidence (iso3 order) slot-kind
+                                                (keys (:order/evidence order)))]
                   (if (= m :no-spec-basis) [:no-spec-basis] m))))
       (conj (str "missing required evidence: "
-                 (facts/missing-evidence (iso3 order) (keys (:order/evidence order)))))
+                 (facts/missing-evidence (iso3 order) slot-kind
+                                         (keys (:order/evidence order)))))
 
       ;; 突出形態は道路占用の検討を明示的に済ませてから
       (and (= to :permit-filed)
