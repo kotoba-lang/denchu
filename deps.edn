@@ -1,0 +1,10 @@
+;; denchu — pure .cljc, zero runtime deps.
+;;
+;; 第一の runtime は ClojureScript / nbb（CLAUDE.md の runtime 優先順位）。
+;; `.kotoba` に載せない理由は入れ子の値（柱 → 観測列 → タグ map）が必要で、
+;; recursive logical values が W4 待ちだから — 到達目標ではなく現在地。
+;; JVM は互換確認のためだけに使える（正本ではない）。
+{:paths ["src"]
+ :deps {}
+ :aliases
+ {:test {:extra-paths ["test"]}}}
