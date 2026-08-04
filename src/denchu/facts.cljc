@@ -54,5 +54,5 @@
   『要否を所管に確認する必要がある』の意味（要否は道路管理者が決める）。"
   [iso3 slot-kind]
   (and (covered? iso3)
-       (contains? (medium/triggers medium) :road-occupancy)
+       (contains? (medium/triggers medium) :road-space)
        (= slot-kind :projecting)))

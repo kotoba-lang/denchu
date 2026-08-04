@@ -5,10 +5,16 @@
   （`denchu.area`）をあちらに書けない。survey に渡す `:enrich` 関数がこの境界。
 
   電柱以外の媒体は素通しする —— この repo は電柱のことしか知らない。"
-  (:require [denchu.media :as media]
+  (:require [clojure.string :as str]
+            [denchu.media :as media]
             [denchu.pole :as pole]))
 
 (def ^:const medium :utility-pole)
+
+(defn jp-jurisdiction?
+  "日本の管轄か。`denchu.area` は ISO 3166-2:JP しか知らない。"
+  [j]
+  (boolean (and (string? j) (or (= "JPN" j) (str/starts-with? j "JP")))))
 
 (defn operator-resolver
   "`okugai.site/fuse` に渡す解決器。電柱の `operator` 文字列 → 電力/通信事業者の
@@ -37,7 +43,11 @@
   - 候補所有者と候補代理店を地点に残す —— **`:site/operator` は unknown のまま**。
     候補は地点ではなく経路に載る、が `denchu.area` の設計。"
   [s]
-  (if (not= medium (:site/medium s))
+  ;; **日本の電柱にしか効かない。** denchu が知っているのは日本の電力/通信事業者と
+  ;; 供給区域だけなので、国外の電柱に当てると `:unknown-owner`（denchu の語彙）が
+  ;; 付いて、okugai の一般則が出した `:unresolved` を上書きしてしまう。
+  (if (or (not= medium (:site/medium s))
+          (not (jp-jurisdiction? (:site/jurisdiction s))))
     s
     (let [route (media/contact-route (site->pole s))]
       (cond-> (assoc s :site/route-status (:route/status route))
