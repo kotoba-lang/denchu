@@ -22,7 +22,8 @@
 
   **`:agency-confirmed` より前に実額は存在しない。** 見積を実額として
   扱う遷移は governor が弾く。"
-  (:require [denchu.facts :as facts]
+  (:require [clojure.string :as str]
+            [denchu.facts :as facts]
             [denchu.media :as media]
             [denchu.slot :as slot]))
 
@@ -70,11 +71,15 @@
       (and (= to :inquiry-proposed) (nil? (:order/quote order)))
       (conj "no indicative quote attached")
 
-      ;; 問い合わせ先が分からないまま送らない
+      ;; 問い合わせ先が分からないまま送らない。所有者が確定していなくても、
+      ;; 管轄から候補が出るなら組んでよい（所有者はその照会で確定する）。
       (and (#{:inquiry-proposed :inquiry-sent} to)
-           (not (media/routable? (:pole/owner pole))))
-      (conj (str "no recorded agency for owner " (:pole/owner pole)
-                 " — 窓口を調べるまで問い合わせを組まない"))
+           (not (contains? #{:routable :candidate-by-area}
+                           (:route/status (media/contact-route pole)))))
+      (conj (str "no reachable agency for pole " (:pole/id pole)
+                 " (owner=" (:pole/owner pole)
+                 " jurisdiction=" (:pole/jurisdiction pole)
+                 ") — 窓口も区域候補も無いまま問い合わせを組まない"))
 
       ;; 送信は外部影響。宛先の実体が要る
       (and (= to :inquiry-sent) (nil? (:order/agency order)))
@@ -148,22 +153,42 @@
 
 (defn inquiry-draft
   "代理店への問い合わせ文面（未送信）。**価格を確定として書かない** —
-  参考値であることと、空き確認が主目的であることを本文に明記する。"
+  参考値であることと、確認したい事項が本文の主眼であることを明記する。
+
+  所有者が未確定（`:candidate-by-area`）の場合は、**設備所有者の確認そのものを
+  第一の問い合わせ事項にする** —— 当方の推定として社名を書くと、相手が
+  「そちらの言うとおり」と流してしまい、誤った所有者が確定してしまう。"
   [order]
   (let [pole (:order/pole order)
         q (:order/quote order)
-        agency (:order/agency order)]
+        agency (:order/agency order)
+        route (media/contact-route pole)
+        candidate? (= :candidate-by-area (:route/status route))]
     (str "件名: 電柱広告の掲出可否・お見積のご相談\n\n"
          (or (:agency/legal-name agency) "ご担当者") " 御中\n\n"
-         "下記の電柱について、広告掲出の可否と正式なお見積をご相談させてください。\n\n"
+         (if candidate?
+           "下記の電柱について、まず貴社のお取り扱い設備かどうかのご確認と、掲出可否・お見積をご相談させてください。\n\n"
+           "下記の電柱について、広告掲出の可否と正式なお見積をご相談させてください。\n\n")
          "・柱の位置: 緯度 " (:pole/lat pole) " / 経度 " (:pole/lon pole) "\n"
          "・柱の識別子（当方の内部 id）: " (:pole/id pole) "\n"
-         "・所有者（当方の推定）: " (name (:pole/owner pole)) "\n"
+         (if candidate?
+           (str "・設備所有者: **当方では特定できておりません。**"
+                " 掲出地の区域から貴社のお取り扱い範囲に含まれる可能性があると考え、ご連絡しております。\n"
+                "  （区域からの候補: "
+                (str/join "、" (map name (:route/owner-candidates route)))
+                "。柱 1 本の所有者を当方が判定したものではありません）\n"
+                (when (:route/boundary? route)
+                  (str "  ※ " (:route/boundary-note route) "\n")))
+           (str "・所有者: " (name (:pole/owner pole))
+                (when-let [e (:pole/owner-evidence pole)] (str "（根拠: " e "）"))
+                "\n"))
          "・希望する掲出面: " (:slot/name-ja (slot/describe (:order/slot-kind order))) "\n"
          "・希望本数/期間: " (:quote/units q) "本 / " (:quote/months q) "ヶ月\n\n"
          "当方で参照した公開料金は "
          (get-in q [:quote/basis :rate/source-url])
          " の記載（" (get-in q [:quote/basis :rate/as-of]) " 時点）で、"
-         "あくまで参考値として扱っております。掲出可否・空き状況・実額・"
+         "あくまで参考値として扱っております。"
+         (when candidate? "設備所有者・")
+         "掲出可否・空き状況・実額・"
          "屋外広告物許可および道路占用許可の要否について、貴社のご確認内容を"
          "そのまま採用いたします。\n")))

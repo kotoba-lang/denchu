@@ -30,7 +30,11 @@
            :pole/sources (:pole/sources pole)
            :pole/observation-count (count (:pole/observations pole))
            :pole/ad-eligible (name (:pole/ad-eligible pole))
-           :pole/routable (media/routable? (:pole/owner pole))}
+           ;; :pole/routable は「所有者が確定していて窓口も分かる」だけを真にする。
+           ;; 区域からの候補は別属性 :pole/route-status に出す —— 候補を routable に
+           ;; 畳むと、所有者未確定の柱が確定済みとして数えられる。
+           :pole/routable (media/routable? (:pole/owner pole))
+           :pole/route-status (name (:route/status (media/contact-route pole)))}
     (:pole/owner-evidence pole) (assoc :pole/owner-evidence (:pole/owner-evidence pole))
     (:pole/jurisdiction pole) (assoc :pole/jurisdiction (:pole/jurisdiction pole))
     (:pole/survey-area pole) (assoc :pole/survey-area (:pole/survey-area pole))))
@@ -70,6 +74,10 @@
      :denchu.coverage/owners-unrouted (vec (map name (:uncovered cov)))
      :denchu.coverage/poles-with-unknown-owner
      (count (filter #(= :unknown (:pole/owner %)) poles))
+     :denchu.coverage/poles-candidate-routable
+     (count (filter #(= :candidate-by-area (:route/status (media/contact-route %))) poles))
+     :denchu.coverage/poles-routable
+     (count (filter #(= :routable (:route/status (media/contact-route %))) poles))
      :denchu.coverage/generated-at generated-at
      :denchu.coverage/note
      (str "この shard は列挙した survey area の中だけを見ている。"

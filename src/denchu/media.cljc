@@ -13,7 +13,8 @@
 
   **自称は自称として記録する。** 代理店自身のサイトが主張する独占性・
   唯一性は `:claims` に `:self-reported` として置き、事実として昇格させない。"
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [denchu.area :as area]))
 
 (def agencies
   "代理店 id → 実体。`:contact` は公開されている問い合わせ経路のみ。
@@ -154,16 +155,51 @@
      :note (str "所有者 " (count ks) " 件中 " (count covered)
                 " 件に窓口を収録。未収録は掲出不可ではなく未調査。")}))
 
+(defn candidate-agencies-for
+  "管轄 → その地域に区域を持つ事業者を扱える代理店。所有者が確定していない
+  柱の**問い合わせ先候補**であって、その柱の所有者を主張するものではない。"
+  [jurisdiction]
+  (when-let [c (area/candidates jurisdiction)]
+    (let [as (->> (:owner/candidates c)
+                  (mapcat agencies-for)
+                  distinct
+                  (sort-by (comp name :agency/id))
+                  vec)]
+      (assoc c :agencies as))))
+
 (defn contact-route
   "柱 1 本 → 申込ルート。`denchu.order` が inquiry を組むときの唯一の入口。
-  所有者不明なら**推測せず** `:unknown-owner` を返す。"
-  [{:keys [pole/owner pole/id]}]
+
+  所有者が確定していれば `:routable`。確定していなくても、柱の管轄
+  （`:pole/jurisdiction`）が分かっていれば区域から**候補**を出して
+  `:candidate-by-area` を返す —— 所有者はこの問い合わせで確定するのが実務。
+  管轄も無ければ `:unknown-owner`。**どの経路でも所有者を推測しない。**"
+  [{:keys [pole/owner pole/id pole/jurisdiction]}]
   (let [as (agencies-for owner)]
     (cond
+      (and (= owner :unknown) (seq (:agencies (candidate-agencies-for jurisdiction))))
+      (let [c (candidate-agencies-for jurisdiction)]
+        {:route/status :candidate-by-area
+         :route/pole-id id
+         :route/jurisdiction jurisdiction
+         :route/owner-candidates (:owner/candidates c)
+         :route/boundary? (:boundary? c)
+         :route/boundary-note (:boundary-note c)
+         :route/agencies (mapv (fn [a] (select-keys a [:agency/id :agency/legal-name
+                                                       :agency/sells-poles-of
+                                                       :agency/contact :agency/source-url
+                                                       :agency/as-of]))
+                               (:agencies c))
+         :route/next-step "候補代理店に『この座標の柱は御社の設備か』を照会して所有者を確定する"
+         :route/caveat "候補は区域から出た制度的事実。この柱の所有者を主張するものではない。"})
+
       (= owner :unknown)
       {:route/status :unknown-owner
        :route/pole-id id
-       :route/next-step "OSM の operator タグ、または現地の柱番号札から所有者を特定する"}
+       :route/jurisdiction jurisdiction
+       :route/next-step (if jurisdiction
+                          (str "管轄 " jurisdiction " が denchu.area に未収録 — 区域を調べて追加する")
+                          "柱に管轄 (:pole/jurisdiction) が付いていない — survey の area 宣言を確認する")}
 
       (empty? as)
       {:route/status :no-agency-recorded

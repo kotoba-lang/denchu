@@ -10,6 +10,7 @@
 | その座標に柱があるか（複数の観測源をどう1本に束ねるか） | `denchu.pole` |
 | その柱にどんな掲出面がありうるか | `denchu.slot` |
 | その柱の広告を**誰に申し込むか**（媒体社／指定代理店と問い合わせ先） | `denchu.media` |
+| 所有者が未確定でも**誰に聞けばよいか**（供給区域からの候補） | `denchu.area` |
 | いくらか（**常に参考値**）／法令上何が要るか／出稿はどう進むか | `denchu.pricing` `denchu.facts` `denchu.order` |
 
 観測の収集そのものは持たない。それは `loop-denchu-survey`（orchestrator）が
@@ -32,6 +33,27 @@
 - **掲出可否を幾何情報から導かない。** `:pole/ad-eligible` は全件 `:unknown`
   から始まる。OSM にも Mapillary にも「この柱に広告を出せるか」は書かれていない。
 - **所有者を推測しない。** `operator` 相当のタグに実社名がある時だけ決まる。
+
+## 所有者が未確定でも問い合わせは組める（`denchu.area`）
+
+実測では OSM の柱の大半に `operator` が無く、261 本中 0 本しか所有者が決まらな
+かった。ここで詰まると問い合わせ 1 通も出せない。
+
+だが**制度的事実**がある: 一般送配電事業者の供給区域と NTT 東西の営業区域は
+法令・会社公表で決まっており、ある県に柱があるならその所有者は限られた候補の
+いずれか。これは座標からの推測ではなく区域の定義そのもの。したがって:
+
+- `denchu.area/candidates` が管轄（ISO 3166-2:JP、**survey が宣言した値**。座標から
+  逆引きしない）から候補事業者を返す
+- `denchu.media/contact-route` が `:candidate-by-area` を返し、候補代理店を出す
+- `denchu.order` は候補ルートでの問い合わせを許し、`inquiry-draft` は
+  **設備所有者の確認そのものを第一の問い合わせ事項にする** — 推定社名を断定として
+  書くと相手が追認して誤った所有者が確定してしまう
+- **`:pole/owner` は `:unknown` のまま。候補は柱ではなく経路に載る**
+
+境界は畳まない。静岡県は富士川で電力が東電PG／中電PGに分かれ、通信は NTT 西日本
+だが熱海市・裾野市の一部が東日本 — こういう県は候補を複数返す（片方に畳むと畳んだ
+側の柱で必ず間違う）。福井（嶺南）・三重・岐阜・兵庫の一部も同様に記録している。
 
 ## 法令構造（`denchu.facts`、取り違えると設計が嘘になる点）
 
@@ -60,7 +82,7 @@ workspace の Actors 不変条件をそのまま持ち込む — 提案する側
 分け、`violations` が空でなければ `advance` は状態を変えない。主な不変条件:
 
 - 参考見積なしに問い合わせを組まない
-- 窓口が未収録の所有者に問い合わせを組まない（`no recorded agency`）
+- 窓口も区域候補も無い柱に問い合わせを組まない（`no reachable agency`）
 - **代理店の回答なしに実額を主張しない**（`:agency-confirmed` の前に実額は存在しない）
 - 管轄の spec-basis と必要証跡が揃うまで許可申請に進まない
 - 袖看板は道路占用の判定記録がなければ許可申請に進まない
@@ -92,7 +114,7 @@ workspace の Actors 不変条件をそのまま持ち込む — 提案する側
 ## テスト
 
 ```bash
-nbb --classpath src:test test/run.cljs     # 34 tests / 118 assertions
+nbb --classpath src:test test/run.cljs     # 47 tests / 256 assertions
 ```
 
 第一の runtime は ClojureScript / nbb。`.kotoba` に載せていないのは、柱→観測列→

@@ -5,10 +5,12 @@
          'denchu.pole-test
          'denchu.pricing-test
          'denchu.order-test
-         'denchu.media-test)
+         'denchu.media-test
+         'denchu.area-test)
 
 (let [{:keys [fail error]} (t/run-tests 'denchu.pole-test
                                         'denchu.pricing-test
                                         'denchu.order-test
-                                        'denchu.media-test)]
+                                        'denchu.media-test
+                                        'denchu.area-test)]
   (js/process.exit (if (pos? (+ fail error)) 1 0)))

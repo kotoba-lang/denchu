@@ -23,14 +23,14 @@
   (let [o (assoc (draft tepco-pole) :order/state :quoted)]
     (is (some #(re-find #"quote" %) (order/violations o :inquiry-proposed)))))
 
-(deftest unknown-owner-blocks-inquiry
-  (testing "所有者不明の柱に問い合わせを組ませない"
+(deftest unknown-owner-and-unknown-area-blocks-inquiry
+  (testing "所有者も管轄も分からない柱に問い合わせを組ませない"
     (let [o (-> (draft orphan-pole)
                 (assoc :order/state :quoted
                        :order/quote (pricing/quote-order
                                      {:agency-rate :telwel-east-higashikanto
                                       :zone :A :units 1 :months 12})))]
-      (is (some #(re-find #"no recorded agency" %)
+      (is (some #(re-find #"no reachable agency" %)
                 (order/violations o :inquiry-proposed))))))
 
 (deftest sending-requires-agency-and-body
