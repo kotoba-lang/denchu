@@ -28,7 +28,7 @@
   パワーグリッドに分かれ、NTT は西日本だが熱海市・裾野市の一部が東日本。福井県は
   嶺南が関西電力送配電。こうした県は `:boundary?` を立てて**両方を候補に残す** ——
   片方に畳むと、畳んだ側の柱で必ず間違う。"
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def ^:const power-source
   "供給区域は電気事業法に基づく一般送配電事業者の区域。県単位の対応は各社の

@@ -13,7 +13,7 @@
 
   **自称は自称として記録する。** 代理店自身のサイトが主張する独占性・
   唯一性は `:claims` に `:self-reported` として置き、事実として昇格させない。"
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [denchu.area :as area]))
 
 (def agencies

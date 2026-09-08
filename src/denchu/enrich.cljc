@@ -5,7 +5,7 @@
   （`denchu.area`）をあちらに書けない。survey に渡す `:enrich` 関数がこの境界。
 
   電柱以外の媒体は素通しする —— この repo は電柱のことしか知らない。"
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [denchu.media :as media]
             [denchu.pole :as pole]))
 

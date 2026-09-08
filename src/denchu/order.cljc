@@ -22,7 +22,7 @@
 
   **`:agency-confirmed` より前に実額は存在しない。** 見積を実額として
   扱う遷移は governor が弾く。"
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [denchu.facts :as facts]
             [denchu.media :as media]
             [denchu.slot :as slot]))
