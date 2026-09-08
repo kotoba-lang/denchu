@@ -10,7 +10,7 @@
   - 地域区分が分からない見積は `:quote/total nil` を返し、何が足りないかを
     `:quote/unknowns` に列挙する。**足りない値を平均や中央値で埋めない。**
   - 税抜/税込を混ぜて合算しない。混在は `:quote/unknowns` になる。"
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def rate-cards
   "代理店 id → 公開料金表。ここに無い代理店の料金は不明であって 0 ではない。"

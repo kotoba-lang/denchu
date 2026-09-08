@@ -7,5 +7,10 @@
 ;;
 ;; 第一の runtime は ClojureScript / nbb（CLAUDE.md の runtime 優先順位）。
 {:paths ["src"]
- :deps {io.github.kotoba-lang/okugai {:local/root "../okugai"}}
+ :deps {
+        ;; kotoba.lang.text, not clojure.string. Pinned as an explicit floor:
+        ;; tools.deps takes the NEWEST sha it is shown, so without a floor here
+        ;; this repo silently rides whatever a sibling happens to name.
+        io.github.kotoba-lang/text {:git/sha "73bdb13ae7a3d004b44bca08be03a3191157a38f"}
+       io.github.kotoba-lang/okugai {:local/root "../okugai"}}
  :aliases {:test {:extra-paths ["test"]}}}
