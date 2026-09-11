@@ -114,7 +114,7 @@ workspace の Actors 不変条件をそのまま持ち込む — 提案する側
 ## テスト
 
 ```bash
-nbb --classpath src:test test/run.cljs     # 47 tests / 256 assertions
+nbb --classpath src:test test/run.cljk     # 47 tests / 256 assertions
 ```
 
 第一の runtime は ClojureScript / nbb。`.kotoba` に載せていないのは、柱→観測列→

@@ -1,6 +1,6 @@
 #!/usr/bin/env nbb
 ;; nbb test runner — denchu
-;;   nbb --classpath src:test test/run.cljs
+;;   nbb --classpath src:test test/run.cljk
 (require '[clojure.test :as t]
          'denchu.pole-test
          'denchu.pricing-test
