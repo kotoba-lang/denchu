@@ -1,5 +1,5 @@
 (ns denchu.order-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [denchu.facts :as denchu.facts]
             [denchu.order :as order]
             [denchu.pricing :as pricing]))

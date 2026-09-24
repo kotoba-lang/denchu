@@ -1,5 +1,5 @@
 (ns denchu.area-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [denchu.area :as area]
             [denchu.media :as media]
             [denchu.order :as order]

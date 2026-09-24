@@ -1,7 +1,7 @@
 #!/usr/bin/env kbb
 ;; nbb test runner — denchu
 ;;   kbb --backend sci --classpath src:test test/run.cljk
-(require '[clojure.test :as t]
+(require '[kotoba.test :as t]
          'denchu.pole-test
          'denchu.pricing-test
          'denchu.order-test

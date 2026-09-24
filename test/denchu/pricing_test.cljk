@@ -1,5 +1,5 @@
 (ns denchu.pricing-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [denchu.pricing :as pricing]))
 
 (deftest zone-quote-is-computed-from-published-numbers
