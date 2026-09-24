@@ -1,5 +1,5 @@
 (ns denchu.pole-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [denchu.pole :as pole]))
 
 (defn- obs [source id lat lon kind & [tags]]

@@ -1,5 +1,5 @@
 (ns denchu.media-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [denchu.datoms :as datoms]
             [denchu.media :as media]
             [denchu.slot :as slot]))
